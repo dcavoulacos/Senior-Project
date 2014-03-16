@@ -1,0 +1,25 @@
+<h1>Listing action_frames</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @action_frames.each do |action_frame| %>
+      <tr>
+        <td><%= link_to 'Show', action_frame %></td>
+        <td><%= link_to 'Edit', edit_action_frame_path(action_frame) %></td>
+        <td><%= link_to 'Destroy', action_frame, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Action Frame', new_action_frame_path %>

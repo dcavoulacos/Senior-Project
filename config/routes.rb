@@ -1,4 +1,10 @@
 SeniorProject::Application.routes.draw do
+  resources :actions
+
+  resources :action_frames
+
+  resources :players
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 

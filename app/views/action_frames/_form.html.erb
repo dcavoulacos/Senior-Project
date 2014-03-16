@@ -1,0 +1,54 @@
+<%= form_for(@action_frame) do |f| %>
+  <% if @action_frame.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@action_frame.errors.count, "error") %> prohibited this action_frame from being saved:</h2>
+
+      <ul>
+      <% @action_frame.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div id="court">
+    <!-- Initial positions 
+    to be determined either during creation of players or can be done first. -->
+    <tr><% pg = @action_frame.players.build(role: "PG") %>
+      <td top-padding="50px"><%= pg.role %></td>
+    </tr>
+
+    <tr><% sg = @action_frame.players.build(role: "SG") %>
+      <td><%= sg.role %></td>
+    </tr>
+
+    <tr><% sf = @action_frame.players.build(role: "SF") %>
+      <td><%= sf.role %></td>
+    </tr>
+
+    <tr><% pf = @action_frame.players.build(role: "PF") %>
+      <td><%= pf.role %></td>
+    </tr>
+
+    <tr><% c = @action_frame.players.build(role: "C") %>
+      <td><%= c.role %></td>
+    </tr>
+  </div>
+
+
+  <div class="actions">
+    <!-- Actions come next, assign them to each player and the input to
+    determine the events during the action frame will be input for the actions.
+    Consider just showing the action form, and dealing with that.  -->
+    <% @action_frame.actions.build(player: pg) %>
+    <% @action_frame.actions.build(player: sg) %>
+    <% @action_frame.actions.build(player: sf) %>
+    <% @action_frame.actions.build(player: pf) %>
+    <% @action_frame.actions.build(player: c) %>
+
+  </div>
+
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

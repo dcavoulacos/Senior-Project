@@ -1,0 +1,15 @@
+// Place all the styles related to the Action_Frames controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+#court {
+	width: 500px;
+	height: 470px;
+
+	padding: 0px;
+	border-style: solid;
+	border-width: 5px;
+
+	background-image: url("nba_halfcourt.jpg");
+	background-size: contain;
+}
