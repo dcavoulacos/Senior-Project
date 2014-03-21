@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140315005013) do
+ActiveRecord::Schema.define(version: 20140321203416) do
 
   create_table "action_frames", force: true do |t|
     t.string   "name"
@@ -28,6 +28,7 @@ ActiveRecord::Schema.define(version: 20140315005013) do
     t.decimal  "end_position_y"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "teammate_id"
   end
 
   add_index "actions", ["action_frame_id"], name: "index_actions_on_action_frame_id"

@@ -8,6 +8,8 @@ class ActionFramesController < ApplicationController
 
   # GET /action_frames/1
   def show
+    @action_frame = ActionFrame.find(params[:id])
+    @action = @action_frame.actions.new
   end
 
   # GET /action_frames/new
@@ -25,6 +27,18 @@ class ActionFramesController < ApplicationController
 
     if @action_frame.save
       redirect_to @action_frame, notice: 'Action frame was successfully created.'
+      # Initial position for all players set here FOR NOW!
+      @action_frame.players.create(role: "PG", has_ball: true, 
+        position_x: 25, position_y: 30)
+      @action_frame.players.create(role: "SG", has_ball: false,
+        position_x: 2, position_y: 7)
+      @action_frame.players.create(role: "SF", has_ball: false,
+        position_x: 48, position_y: 7)
+      @action_frame.players.create(role: "PF", has_ball: false,
+        position_x: 16, position_y: 20)
+      @action_frame.players.create(role: "C", has_ball: false,
+        position_x: 34, position_y: 20)  
+
     else
       render action: 'new'
     end
@@ -53,6 +67,6 @@ class ActionFramesController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def action_frame_params
-      params[:action_frame]
+      params.require(:action_frame).permit(:action_frame_id)
     end
 end

@@ -22,11 +22,20 @@ class ActionsController < ApplicationController
   # POST /actions
   def create
     @action = Action.new(action_params)
+    if is_invalid(@action)
+      format.html {render action: 'new' }
+      format.json { render json: @action.errors, status: :unprocessable_entity }
+    end
 
-    if @action.save
-      redirect_to @action, notice: 'Action was successfully created.'
-    else
-      render action: 'new'
+    respond_to do |format|
+      if @action.save
+        format.html { redirect_to @action, notice: 'Action was successfully created.' }
+        format.js
+        format.json { render action: 'show', status: :created, location: @action }
+      else
+        format.html {render action: 'new' }
+        format.json { render json: @action.errors, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -53,6 +62,32 @@ class ActionsController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def action_params
-      params.require(:action).permit(:end_x, :end_y, :type)
+      params.require(:motion).permit(:player_id, :end_x, :end_y, :type, :teammate)
+    end
+
+    def is_invalid(action)
+      if action.type == 'Move'
+        if action.end_position_x == nil || action.end_position_y == nil
+          return true
+          # Error report, must move somewhere.
+        elsif action.end_position_x < 0 || action.end_position_x > 50
+          return true
+          # Error report, out of bounds.
+        elsif action.end_position_y < 0 || action.end_position_y > 47
+          return true
+          # Error report, out of bounds/backcourt violation.
+          # LET THIS BE ALTERED WHEN COURT SIZE IS VARIABLE!!!
+        end
+
+      elsif action.type == 'Pass'
+        unless action.player.has_ball
+          return true
+          # Error report, you must have the ball to pass!
+        end
+        if action.player == action.catcher
+          return true
+          # Error report, cannot pass to yourself
+        end
+      end
     end
 end

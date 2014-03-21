@@ -3,13 +3,78 @@
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
 #court {
+	position: relative;
+	float: left;
+
 	width: 500px;
 	height: 470px;
 
 	padding: 0px;
 	border-style: solid;
-	border-width: 5px;
+	border-width: 2px;
 
 	background-image: url("nba_halfcourt.jpg");
-	background-size: contain;
+	background-size: cover;
+
+	.player {
+		position: absolute;
+
+		border: 2px solid blue;
+		width: 18px;
+		text-align: center;
+	}
+
+	#PG {
+		background-color: white;
+		border-color: red;
+
+		left: 241px;
+		bottom: 300px;
+	}
+
+	#SG {
+		background-color: white;
+
+		left: 8px;
+		bottom: 50px;
+	}
+
+	#SF {
+		background-color: white;
+
+		left: 471px;
+		bottom: 50px;
+	}
+
+	#PF {
+		background-color: white;
+
+		left: 149px;
+		bottom: 200px;
+	}
+
+	#C {
+		background-color: white;
+
+		left: 329px;
+		bottom: 200px;
+	}
+}
+
+.players {
+	border: 3px solid green;
+	width: 250px;
+}
+
+.clear{
+	clear: both;
+}
+
+.action_adder {
+}
+
+.not-court {
+	margin-left: 45px;
+	float: left;
+	border: 1px solid;
 }
