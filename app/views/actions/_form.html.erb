@@ -1,5 +1,5 @@
-<%= form_for(@action), as: :motion do |f| %>
-  <% if @action.errors.any? %>
+<%= form_for(@new_action) do |f| %>
+  <% if @new_action.errors.any? %>
     <div id="error_explanation">
       <h2><%= pluralize(@action.errors.count, "error") %> prohibited this action from being saved:</h2>
 
@@ -15,7 +15,7 @@
     <%= f.label :player %>
     <%= f.select :player_id , options_from_collection_for_select(
       @action_frame.players, 'id', 'role'), include_blank: true %>
-    <%= @action.player %>
+    <%= @new_action.player %>
   </div>
   <div class="field">
     <%= f.label :type %>
