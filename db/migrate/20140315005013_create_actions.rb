@@ -2,7 +2,8 @@ class CreateActions < ActiveRecord::Migration
   def change
     create_table :actions do |t|
     	t.references :action_frame, index: true
-    	t.references :player, index: true
+      t.references :player, index: true
+
     	t.string :action_type
 
     	# End positions only updated for moving types (run and dribble). Else,

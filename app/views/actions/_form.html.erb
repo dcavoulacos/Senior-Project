@@ -1,7 +1,9 @@
-<%= form_for(@new_action) do |f| %>
-  <% if @new_action.errors.any? %>
+<%= simple_form_for(@action, as: :new_action) do |f| %>
+  <% if @action.errors.any? %>
     <div id="error_explanation">
-      <h2><%= pluralize(@action.errors.count, "error") %> prohibited this action from being saved:</h2>
+      <h2>
+        <%= pluralize(@action.errors.count, "error") %> prohibited this action from being saved:
+      </h2>
 
       <ul>
       <% @action.errors.full_messages.each do |msg| %>
@@ -11,32 +13,17 @@
     </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :player %>
-    <%= f.select :player_id , options_from_collection_for_select(
-      @action_frame.players, 'id', 'role'), include_blank: true %>
-    <%= @new_action.player %>
-  </div>
-  <div class="field">
-    <%= f.label :type %>
-    <%= f.select :action_type, ['Move', 'Pass'], include_blank: true %>
-  </div>
-  <div class="field">
-    <%= f.label :end_x %>
-    <%= f.text_field :end_position_x %>
-  </div> 
-  <div class="field">
-    <%= f.label :end_y %>
-    <%= f.text_field :end_position_y %>
-  </div>
-  <div class="field">
-    <%= f.label :teammate %>
-    <%= f.select :teammate_id , options_from_collection_for_select(
-      @action_frame.players.where("has_ball = ?", false), 'id', 'role'), 
-      include_blank: true %>
+  <%= f.input :action_type, collection: ["Move", "Pass"] %>
+
+  <div>
+    <%= f.input :end_position_x, value: :decimal, required: (f.object.action_type == "Move") %>
+    <%= f.input :end_position_y, value: :decimal, required: (f.object.action_type == "Move") %>
   </div>
 
-  <div class="actions">
-    <%= f.submit %>
+  <div>
+    <%= f.input :teammate, collection: @action.action_frame.players.where(has_ball: false), 
+    label_method: :role %>
   </div>
+
+  <div id"submit_button"><%= f.submit %></div>
 <% end %>

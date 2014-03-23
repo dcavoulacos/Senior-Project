@@ -1,4 +1,28 @@
 <p id="notice"><%= notice %></p>
 
+<table>
+	<thead>
+		<th>Action id</th>
+		<th>Action Frame</th>
+		<th>Action Player</th>
+		<th>Action Type</th>
+		<th>End x</th>
+		<th>End y</th>
+		<th>Teammate</th>
+	</thead>
+		<tr>
+			<td><%= @action.id %></td>
+			<td><%= @action.action_frame.id %></td>
+			<td><%= @action.player.role %></td>
+			<td><%= @action.action_type %></td>
+			<td><%= @action.end_position_x %></td>
+			<td><%= @action.end_position_y %></td>
+			<td><%= @action.teammate.role %></td>
+		</tr>
+	<tbody>
+
+	</tbody>
+</table>
+
 <%= link_to 'Edit', edit_action_path(@action) %> |
 <%= link_to 'Back', actions_path %>

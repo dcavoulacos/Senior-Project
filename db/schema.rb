@@ -28,7 +28,7 @@ ActiveRecord::Schema.define(version: 20140321203416) do
     t.decimal  "end_position_y"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer  "teammate_id"
+    t.integer  "teammate"
   end
 
   add_index "actions", ["action_frame_id"], name: "index_actions_on_action_frame_id"

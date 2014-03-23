@@ -22,18 +22,19 @@ class ActionsController < ApplicationController
   # POST /actions
   def create
     @action = Action.new(action_params)
-    if is_invalid(@action)
-      format.html {render action: 'new' }
-      format.json { render json: @action.errors, status: :unprocessable_entity }
-    end
+    # if is_invalid(@action)
+    #   format.html {redirect_to :back }
+    #   format.json { render json: @action.errors, status: :unprocessable_entity }
+    # end
 
     respond_to do |format|
       if @action.save
-        format.html { redirect_to @action, notice: 'Action was successfully created.' }
+        format.html { redirect_to :back, notice: 'Action was successfully created.' }
         format.js
         format.json { render action: 'show', status: :created, location: @action }
       else
-        format.html {render action: 'new' }
+        # This used to be render: action 'new'
+        format.html { render action: 'new' }
         format.json { render json: @action.errors, status: :unprocessable_entity }
       end
     end
@@ -42,7 +43,7 @@ class ActionsController < ApplicationController
   # PATCH/PUT /actions/1
   def update
     if @action.update(action_params)
-      redirect_to @action, notice: 'Action was successfully updated.'
+      redirect_to @action.action_frame, notice: 'Action was successfully updated.'
     else
       render action: 'edit'
     end
@@ -62,11 +63,12 @@ class ActionsController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def action_params
-      params.require(:motion).permit(:player_id, :end_x, :end_y, :type, :teammate)
+      params.require(:new_action).permit(:action_frame, :player, :end_x, 
+        :end_y, :action_type, :teammate)
     end
 
     def is_invalid(action)
-      if action.type == 'Move'
+      if action.action_type == 'Move'
         if action.end_position_x == nil || action.end_position_y == nil
           return true
           # Error report, must move somewhere.
@@ -79,12 +81,12 @@ class ActionsController < ApplicationController
           # LET THIS BE ALTERED WHEN COURT SIZE IS VARIABLE!!!
         end
 
-      elsif action.type == 'Pass'
-        unless action.player.has_ball
+      elsif action.action_type == 'Pass'
+          unless action.player.has_ball
           return true
           # Error report, you must have the ball to pass!
         end
-        if action.player == action.catcher
+        if action.player_id == action.teammate_id
           return true
           # Error report, cannot pass to yourself
         end

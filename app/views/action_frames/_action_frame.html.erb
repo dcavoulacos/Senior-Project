@@ -7,7 +7,6 @@
     <div class="players">
         <table>
             <thead>
-                <th>AF_id</th>
                 <th>Role</th>
                 <th>Pos x</th>
                 <th>Pos y</th>
@@ -16,7 +15,6 @@
             <tbody>
                 <% @action_frame.players.each do |p| %>
                     <tr>
-                        <td><%= p.action_frame.id  %></td>
                         <td><%= p.role%></td>
                         <td><%= p.position_x %></td>
                         <td><%= p.position_y %></td>
@@ -29,14 +27,32 @@
     </div> 
 
     <div class="AF_actions">
-        <% if @action_frame.actions.size > 0 %>
+        <% if @action_frame.actions.size >= 0 %>
             <table>
                 <thead>
-                    
+                    <th>Edit</th>
+                    <th>Player</th>
+                    <th>Type</th>
+                    <th>End x</th>
+                    <th>End y</th>
+                    <th>Teammate</th>
                 </thead>
                 <tbody>
-                    <% @action_frame.actions.each do |p| %>
-                        
+                    <% @action_frame.actions.each do |a| %>
+                        <tr>
+                            <td><%= link_to 'Edit', edit_action_path(a) %></td>
+                            <td><%= a.player.role %></td>
+                            <td><%= a.action_type %></td>
+                            <% if a.action_type == "Move" %>
+                                <td><%= a.end_position_x %></td>
+                                <td><%= a.end_position_y %></td>
+                                <td>-</td>
+                            <% elsif a.action_type == "Pass" %>
+                                <td>-</td>
+                                <td>-</td>
+                                <td><%= Player.find_by_id(a.teammate).role %></td>
+                            <% end %>                                
+                        </tr>
                     <% end %>
                 </tbody>
             </table>
@@ -44,9 +60,6 @@
     </div> 
 
     <br><br>
-    <div class="action_adder">
-        <%= render 'actions/form' %>
-    </div>
 
 </div>
 

@@ -1,9 +1,13 @@
 SeniorProject::Application.routes.draw do
-  resources :actions
-
+  
   resources :action_frames
 
+  get "action_frames/index"
+
   resources :players
+  resources :actions
+
+  root 'action_frames#index'
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
