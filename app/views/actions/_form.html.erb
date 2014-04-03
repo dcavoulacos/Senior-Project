@@ -15,10 +15,8 @@
 
   <%= f.input :action_type, collection: ["Move", "Pass"] %>
 
-  <div>
-    <%= f.input :end_position_x, value: :decimal, required: (f.object.action_type == "Move") %>
-    <%= f.input :end_position_y, value: :decimal, required: (f.object.action_type == "Move") %>
-  </div>
+  <%= f.input :end_position_x %>
+  <%= f.input :end_position_y %>
 
   <div>
     <%= f.input :teammate, collection: @action.action_frame.players.where(has_ball: false), 

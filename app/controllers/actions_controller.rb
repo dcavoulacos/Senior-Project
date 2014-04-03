@@ -22,11 +22,7 @@ class ActionsController < ApplicationController
   # POST /actions
   def create
     @action = Action.new(action_params)
-    # if is_invalid(@action)
-    #   format.html {redirect_to :back }
-    #   format.json { render json: @action.errors, status: :unprocessable_entity }
-    # end
-
+  
     respond_to do |format|
       if @action.save
         format.html { redirect_to :back, notice: 'Action was successfully created.' }
@@ -42,6 +38,12 @@ class ActionsController < ApplicationController
 
   # PATCH/PUT /actions/1
   def update
+
+    if (@action.action_type == 'Pass' && @action.player.has_ball == false)
+      format.html {redirect_to :back }
+      format.json { render json: @action.errors, status: :unprocessable_entity }
+    end
+
     if @action.update(action_params)
       redirect_to @action.action_frame, notice: 'Action was successfully updated.'
     else
@@ -63,8 +65,8 @@ class ActionsController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def action_params
-      params.require(:new_action).permit(:action_frame, :player, :end_x, 
-        :end_y, :action_type, :teammate)
+      params.require(:new_action).permit(:action_frame, :player, :end_position_x, 
+        :end_position_y, :action_type, :teammate)
     end
 
     def is_invalid(action)
@@ -82,7 +84,7 @@ class ActionsController < ApplicationController
         end
 
       elsif action.action_type == 'Pass'
-          unless action.player.has_ball
+          unless action.player.has_ball == true
           return true
           # Error report, you must have the ball to pass!
         end
