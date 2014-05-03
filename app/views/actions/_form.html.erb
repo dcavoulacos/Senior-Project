@@ -1,3 +1,5 @@
+<script type="text/javascript" src="application.js"></script>
+
 <%= simple_form_for(@action, as: :new_action) do |f| %>
   <% if @action.errors.any? %>
     <div id="error_explanation">
@@ -13,14 +15,30 @@
     </div>
   <% end %>
 
-  <%= f.input :action_type, collection: ["Move", "Pass"] %>
+  <div class="choose_type">
+    <% if @action.player.has_ball %>
+      <%= f.select :action_type, ["Move", "Screen", "Pass", "Shoot"], 
+      include_blank: true, onchange: "alert('test')" %>
+    <% else %>
+      <%= f.select :action_type, ["Move", "Screen"], include_blank: true, selected: @action.action_type, onchange: "displayOptions();" %>
+    <% end %>
+  </div>
 
-  <%= f.input :end_position_x %>
-  <%= f.input :end_position_y %>
+  <!-- style="display:none;" -->
+  <div id="move_screen">
+    <%= f.input :end_position_x %>
+    <%= f.input :end_position_y %>
+  </div>
 
-  <div>
-    <%= f.input :teammate, collection: @action.action_frame.players.where(has_ball: false), 
-    label_method: :role %>
+  <div id="pass">
+    <% if @action.player.has_ball %>
+      <% set_play = SetPlay.find_by_id(@action.action_frame.set_play_id) %>
+      <!-- Might need to have a shortcut to set @set_play for all of this... -->
+
+      
+      <%= f.input :teammate, collection: set_play.players.where(has_ball: false), 
+      label_method: :role %>
+    <% end %>
   </div>
 
   <div id"submit_button"><%= f.submit %></div>

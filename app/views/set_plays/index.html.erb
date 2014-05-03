@@ -1,0 +1,28 @@
+<h1><u>Your Set Plays</u></h1>
+
+<table style="border-spacing:10px;">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @set_plays.each do |set_play| %>
+      <tr>
+        <td><%= set_play.name %></td>
+        <td><%= set_play.offense.name %></td>
+        <td><%= link_to 'Review', set_play %></td>
+        <td><%= link_to 'Delete', set_play, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Set play', new_set_play_path %>

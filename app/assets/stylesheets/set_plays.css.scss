@@ -1,0 +1,50 @@
+// Place all the styles related to the SetPlays controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+#court {
+	position: relative;
+	float: left;
+
+	padding: 0px;
+	border-style: solid;
+	border-width: 2px;
+
+	background-image: url("nba_halfcourt.jpg");
+	background-size: cover;
+
+}
+
+.players {
+	width: 395px;
+}
+
+.clear{
+	clear: both;
+}
+
+.AF_actions {
+}
+
+.not-court {
+	margin-left: 20px;
+	float: left;
+	border: 1px solid;
+	height: 470px;
+	width: 395px;
+}
+
+#notice {
+	margin-top:0px;
+	margin-bottom:0px;
+}
+
+ul {
+list-style-type:none;
+margin:0;
+padding:0;
+}
+
+li {
+display:inline;
+}

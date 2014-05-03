@@ -1,0 +1,677 @@
+<p>
+  <strong>Name:</strong>
+  <%= @set_play.name %>
+</p>
+<p>
+  <strong>Type:</strong>
+  <%= @set_play.offense.name %>
+</p>
+<p id="notice"><%= notice %></p>
+<div>
+  <% @set_play.action_frames.all %>
+  <% currentAF = ActionFrame.find_by_id(@set_play.currentAF_id) %><br>
+  <% "Current AF = #{currentAF.id}" %>
+</div>
+
+<canvas id="court" width="500px", height="470px"></canvas>
+ <!-- Graphical display and manipulation to happen here -->
+<script type="text/javascript">
+	var court = document.getElementById('court').getContext('2d');
+	court.translate(0, 470);
+	court.font = "20px Tahoma";
+
+  var ball;
+  var ball_x;
+  var ball_y;
+	//Get values for all players from DB to JS
+	var pg_x = <%= @set_play.pg.position_x * 10 %>;
+	var pg_y = <%= @set_play.pg.position_y * -10 %>;
+  if (<%= @set_play.pg.has_ball %>) ball = "PG";
+
+  var sg_x = <%= @set_play.sg.position_x * 10 %>;
+  var sg_y = <%= @set_play.sg.position_y * -10 %>;
+  if (<%= @set_play.sg.has_ball %>) ball = "SG";
+
+  var sf_x = <%= @set_play.sf.position_x * 10 %>;
+  var sf_y = <%= @set_play.sf.position_y * -10 %>;
+  if (<%= @set_play.sf.has_ball %>) ball = "SF";
+
+  var pf_x = <%= @set_play.pf.position_x * 10 %>;
+  var pf_y = <%= @set_play.pf.position_y * -10 %>;
+  if (<%= @set_play.pf.has_ball %>) ball = "PF";
+
+  var c_x = <%= @set_play.c.position_x * 10 %>;
+  var c_y = <%= @set_play.c.position_y * -10 %>;
+  if (<%= @set_play.c.has_ball %>) ball = "C";
+
+  //Draw players with initial position in AF
+  var pg = court.fillText("PG", pg_x, pg_y);
+  var sg = court.fillText("SG", sg_x, sg_y);
+  var sf = court.fillText("SF", sf_x, sf_y);
+  var pf = court.fillText("PF", pf_x, pf_y);
+  var c = court.fillText("C", c_x, c_y);
+
+  // Set ball position and draw
+  if (ball == "PG") {
+    ball_x = pg_x + 12;
+    ball_y = pg_y - 7;
+  } else if (ball == "SG") {
+    ball_x = sg_x + 12;
+    ball_y = sg_y - 7;
+  } else if (ball == "SF") {
+    ball_x = sf_x + 12;
+    ball_y = sf_y - 7;
+  } else if (ball == "PF") {
+    ball_x = pf_x + 12;
+    ball_y = pf_y - 7;
+  } else if (ball == "C") {
+    ball_x = c_x + 12;
+    ball_y = c_y - 7;
+  }
+  court.beginPath();
+  court.arc(ball_x, ball_y, 18, 0, 2*Math.PI);
+  court.stroke();
+
+	// Draw actions
+  var pg_end_x = pg_x;
+  var pg_end_y = pg_y;
+  var sg_end_x = sg_x;
+  var sg_end_y = sg_y;
+  var sf_end_x = sf_x;
+  var sf_end_y = sf_y;
+  var pf_end_x = pf_x;
+  var pf_end_y = pf_y;
+  var c_end_x = c_x;
+  var c_end_y = c_y;
+  var ball_end;
+  var ball_end_x = ball_x;
+  var ball_end_y = ball_y;
+  // Huge pain to make this the opposite of DRY, but values must be updated for
+  // animation.
+  <% @set_play.players.each do |p| %>
+    <% a = p.current_action(currentAF) %>
+    <% if p.role == "PG" %>
+      <% if a.action_type == "Move" %>
+        pg_end_x = <%= a.end_position_x %> * 10;
+        pg_end_y = <%= a.end_position_y %> * -10;
+        draw_action(court, "Move", pg_x + 12, pg_y - 7, pg_end_x + 12, pg_end_y -7);
+        <% if p.has_ball %>
+          ball_end_x = pg_end_x;
+          ball_end_y = pg_end_y;
+        <% end %>
+      <% elsif a.action_type == "Screen" %>
+        pg_end_x = <%= a.end_position_x %> * 10;
+        pg_end_y = <%= a.end_position_y %> * -10;
+        draw_action(court, "Screen", pg_x + 12, pg_y - 7, pg_end_x + 12, pg_end_y -7);
+      <% elsif a.action_type == "Pass" %>
+        pg_end_x = pg_x;
+        pg_end_y = pg_y;
+        <% tm = Player.find(a.teammate) %>
+        <% tm_a = tm.current_action(currentAF) %>
+        <% if tm_a.action_type == "Move" || tm_a.action_type == "Screen" %>
+          ball_end_x = (<%= tm_a.end_position_x %> * 10) + 12;
+          ball_end_y = (<%= tm_a.end_position_y %> * -10) - 7;
+        //   // Annoying if-elses needed here for ball_end, ti va kanw;
+        <% else %> 
+          ball_end_x = (<%= tm.position_x %> * 10) + 12;
+          ball_end_y = (<%= tm.position_y %> * -10) - 7;
+        <% end %>
+        draw_action(court, "Pass", pg_x + 12, pg_y - 7, ball_end_x, ball_end_y);
+      <% elsif a.action_type == "Shoot" %>
+        pg_end_x = pg_x;
+        pg_end_y = pg_y;
+        ball_end_x = 250.5;
+        ball_end_y = -54;
+        draw_action(court, "Shoot", pg_x + 12, pg_y - 7, ball_end_x, ball_end_y);
+      <% end %>
+    <% elsif (p.role == "SG") %>
+      <% if a.action_type == "Move" %>
+        sg_end_x = <%= a.end_position_x %> * 10;
+        sg_end_y = <%= a.end_position_y %> * -10;
+        draw_action(court, "Move", sg_x + 12, sg_y - 7, sg_end_x + 12, sg_end_y -7);
+      <% elsif a.action_type == "Screen" %>
+        sg_end_x = <%= a.end_position_x %> * 10;
+        sg_end_y = <%= a.end_position_y %> * -10;
+        draw_action(court, "Screen", sg_x + 12, sg_y - 7, sg_end_x + 12, sg_end_y -7);
+      <% elsif a.action_type == "Pass" %>
+        sg_end_x = sg_x;
+        sg_end_y = sg_y;
+        <% tm = Player.find(a.teammate) %>
+        <% tm_a = tm.current_action(currentAF) %>
+        <% if tm_a.action_type == "Move" || tm_a.action_type == "Screen" %>
+          ball_end_x = (<%= tm_a.end_position_x %> * 10) + 12;
+          ball_end_y = (<%= tm_a.end_position_y %> * -10) - 7;
+          // Annoying if-elses needed here for ball_end, ti va kanw;
+        <% else %> 
+          ball_end_x = (<%= tm.position_x %> * 10) + 12;
+          ball_end_y = (<%= tm.position_y %> * -10) - 7;
+        <% end %>
+        draw_action(court, "Pass", sg_x + 12, sg_y - 7, ball_end_x, ball_end_y);
+      <% elsif a.action_type == "Shoot" %>
+        sg_end_x = sg_x;
+        sg_end_y = sg_y;
+        ball_end_x = 250.5;
+        ball_end_y = -54;
+        draw_action(court, "Shoot", sg_x + 12, sg_y - 7, ball_end_x, ball_end_y);
+      <% end %>
+    <% elsif (p.role == "SF") %>
+      <% if a.action_type == "Move" %>
+        sf_end_x = <%= a.end_position_x %> * 10;
+        sf_end_y = <%= a.end_position_y %> * -10;
+        draw_action(court, "Move", sf_x + 12, sf_y - 7, sf_end_x + 12, sf_end_y -7);
+      <% elsif a.action_type == "Screen" %>
+        sf_end_x = <%= a.end_position_x %> * 10;
+        sf_end_y = <%= a.end_position_y %> * -10;
+        draw_action(court, "Screen", sf_x + 12, sf_y - 7, sf_end_x + 12, sf_end_y -7);
+      <% elsif a.action_type == "Pass" %>
+        sf_end_x = sf_x;
+        sf_end_y = sf_y;
+        <% tm = Player.find(a.teammate) %>
+        <% tm_a = tm.current_action(currentAF) %>
+        <% if tm_a.action_type == "Move" || tm_a.action_type == "Screen" %>
+          ball_end_x = (<%= tm_a.end_position_x %> * 10) + 12;
+          ball_end_y = (<%= tm_a.end_position_y %> * -10) - 7;
+          // Annoying if-elses needed here for ball_end, ti va kanw;
+        <% else %> 
+          ball_end_x = (<%= tm.position_x %> * 10) + 12;
+          ball_end_y = (<%= tm.position_y %> * -10) - 7;
+        <% end %>
+        draw_action(court, "Pass", sf_x + 12, sf_y - 7, ball_end_x, ball_end_y);
+      <% elsif a.action_type == "Shoot" %>
+        sf_end_x = sf_x;
+        sf_end_y = sf_y;
+        ball_end_x = 250.5;
+        ball_end_y = -54;
+        draw_action(court, "Shoot", sf_x + 12, sf_y - 7, ball_end_x, ball_end_y);
+      <% end %>
+    <% elsif (p.role == "PF") %>
+      <% if a.action_type == "Move" %>
+        pf_end_x = <%= a.end_position_x %> * 10;
+        pf_end_y = <%= a.end_position_y %> * -10;
+        draw_action(court, "Move", pf_x + 12, pf_y - 7, pf_end_x + 12, pf_end_y -7);
+      <% elsif a.action_type == "Screen" %>
+        pf_end_x = <%= a.end_position_x %> * 10;
+        pf_end_y = <%= a.end_position_y %> * -10;
+        draw_action(court, "Screen", pf_x + 12, pf_y - 7, pf_end_x + 12, pf_end_y -7);
+      <% elsif a.action_type == "Pass" %>
+        pf_end_x = pf_x;
+        pf_end_y = pf_y;
+        <% tm = Player.find(a.teammate) %>
+        <% tm_a = tm.current_action(currentAF) %>
+        <% if tm_a.action_type == "Move" || tm_a.action_type == "Screen" %>
+          ball_end_x = (<%= tm_a.end_position_x %> * 10) + 12;
+          ball_end_y = (<%= tm_a.end_position_y %> * -10) - 7;
+          // Annoying if-elses needed here for ball_end, ti va kanw;
+        <% else %> 
+          ball_end_x = (<%= tm.position_x %> * 10) + 12;
+          ball_end_y = (<%= tm.position_y %> * -10) - 7;
+        <% end %>
+        draw_action(court, "Pass", pf_x + 12, pf_y - 7, ball_end_x, ball_end_y);
+      <% elsif a.action_type == "Shoot" %>
+        pf_end_x = pf_x;
+        pf_end_y = pf_y;
+        ball_end_x = 250.5;
+        ball_end_y = -54;
+        draw_action(court, "Shoot", pf_x + 12, pf_y - 7, ball_end_x, ball_end_y);
+      <% end %>
+    <% elsif (p.role == "C") %>
+      <% if a.action_type == "Move" %>
+        c_end_x = <%= a.end_position_x %> * 10;
+        c_end_y = <%= a.end_position_y %> * -10;
+        draw_action(court, "Move", c_x + 12, c_y - 7, c_end_x + 12, c_end_y -7);
+      <% elsif a.action_type == "Screen" %>
+        c_end_x = <%= a.end_position_x %> * 10;
+        c_end_y = <%= a.end_position_y %> * -10;
+        draw_action(court, "Screen", c_x + 12, c_y - 7, c_end_x + 12, c_end_y -7);
+      <% elsif a.action_type == "Pass" %>
+        c_end_x = c_x;
+        c_end_y = c_y;
+        <% tm = Player.find(a.teammate) %>
+        <% tm_a = tm.current_action(currentAF) %>
+        <% if tm_a.action_type == "Move" || tm_a.action_type == "Screen" %>
+          ball_end_x = (<%= tm_a.end_position_x %> * 10) + 12;
+          ball_end_y = (<%= tm_a.end_position_y %> * -10) - 7;
+          // Annoying if-elses needed here for ball_end, ti va kanw;
+        <% else %> 
+          ball_end_x = (<%= tm.position_x %> * 10) + 12;
+          ball_end_y = (<%= tm.position_y %> * -10) - 7);
+        <% end %>
+        draw_action(court, "Pass", c_x + 12, c_y - 7, ball_end_x, ball_end_y);
+      <% elsif a.action_type == "Shoot" %>
+        c_end_x = c_x;
+        c_end_y = c_y;
+        ball_end_x = 250.5;
+        ball_end_y = -54;
+        draw_action(court, "Shoot", c_x + 12, c_y - 7, ball_end_x, ball_end_y);
+      <% end %>
+    <% end %>
+  <% end %>
+  
+  function draw_action(court, type, start_x, start_y, end_x, end_y) {
+    court.lineWidth = 1.5;
+    // Avoid lines overlapping with text
+    var diff_x = end_x - start_x;
+    var diff_y = end_y - start_y;
+    var hyp = Math.floor(Math.sqrt(diff_x*diff_x + diff_y*diff_y)/13);
+    start_x += diff_x/hyp;
+    start_y += diff_y/hyp;
+    if (type == "Move") {
+      court.strokeStyle = '#000000';
+      court.fillStyle = '#000000';
+      court.beginPath();
+      court.moveTo(start_x, start_y);
+      court.lineTo(end_x, end_y);
+      court.stroke();
+    } else if (type == "Screen") {
+      court.strokeStyle = '#000000';
+      court.fillStyle = '#000000';
+      var angle = Math.atan2((end_y - start_y), (end_x - start_x));
+      var top_x = end_x - Math.sin(angle)*20;
+      var top_y = end_y + Math.cos(angle)*20;
+      var bot_x = end_x + Math.sin(angle)*20;
+      var bot_y = end_y - Math.cos(angle)*20;
+      court.beginPath();
+      court.moveTo(start_x, start_y);
+      court.lineTo(end_x, end_y);
+      court.lineTo(top_x, top_y);
+      court.lineTo(bot_x, bot_y);
+      court.stroke();
+    } else if (type == "Pass") {
+      court.strokeStyle = '#606060';
+      court.fillStyle = '#606060';
+      // Avoid overlap with text when passing to stationary teammate
+      <% if currentAF.actions.find_by_action_type("Pass") %>
+        <% tm = Player.find(currentAF.actions.find_by_action_type("Pass").teammate) %>
+        <% tm_a = tm.current_action(currentAF).action_type %>
+        <% if tm_a != "Move" && tm_a != "Screen" %>
+          end_x -= diff_x/hyp;
+          end_y -= diff_y/hyp;
+        <% end %>
+      <% end %>
+      // Dashed lines
+      // temp_x and temp_y used to keep arrowhead consistent
+      var temp_x = start_x;
+      var temp_y = start_y;
+      var length = 5;
+      var dx = end_x - start_x;
+      var dy = end_y - start_y;
+      var dash_num = Math.floor(Math.sqrt(dx*dx + dy*dy) / length);
+      var dash_x = dx/dash_num;
+      var dash_y = dy/dash_num;
+      // Counter
+      var i = 0;
+      court.beginPath();
+      court.moveTo(start_x, start_y);
+      while (i++ < dash_num) {
+        temp_x += dash_x;
+        temp_y += dash_y;
+        court[i % 2 == 0 ? 'moveTo' : 'lineTo'](temp_x, temp_y);
+      }
+      court[i % 2 == 0 ? 'moveTo' : 'lineTo'](temp_x, temp_y);
+      court.stroke();
+
+    } else if (type == "Shoot") {
+      court.lineWidth = 3;
+      court.strokeStyle = '#ff0000';
+      court.fillStyle = '#ff0000';
+      court.beginPath();
+      court.moveTo(start_x, start_y);
+      court.lineTo(end_x, end_y);
+      court.stroke();
+
+    }
+    if (type != "Screen") {
+      // Draw arrowhead
+      var lineangle = Math.atan2((end_y - start_y), (end_x - start_x))
+      var angle_top = lineangle + Math.PI + (Math.PI/8);
+      var angle_bot = lineangle + Math.PI - (Math.PI/8);
+      var h = Math.abs(10/Math.cos(Math.PI/8));
+
+      var top_x = end_x + Math.cos(angle_top)*h;
+      var top_y = end_y + Math.sin(angle_top)*h;
+      var bot_x = end_x + Math.cos(angle_bot)*h;
+      var bot_y = end_y + Math.sin(angle_bot)*h;
+      court.beginPath();
+      court.moveTo(top_x, top_y);
+      court.lineTo(end_x, end_y);
+      court.lineTo(bot_x, bot_y);
+      court.quadraticCurveTo(end_x, end_y, top_x, top_y);
+      court.stroke();
+      court.fill();
+
+      court.lineWidth = 1.5;
+      court.strokeStyle = '#000000';
+      court.fillStyle = '#000000';
+    }
+  }
+</script>
+
+<div class="not-court">
+  <div class="players">
+  	<table>
+      <thead>
+        <th>Role</th>
+        <th>Pos x</th>
+        <th>Pos y</th>
+        <th>Ball</th>
+        <th>Action</th>
+        <th>End x</th>
+        <th>End y</th>
+        <th>Teammate</th>
+      </thead>
+	    <tbody>
+        <% @set_play.players.each do |p| %>
+          <tr>
+            <td><%= p.role%></td>
+            <td><%= p.position_x %></td>
+            <td><%= p.position_y %></td>
+            <td><%= p.has_ball %></td>
+            <% if a = p.current_action(currentAF) %>
+              <% unless a.is_stand %>
+                <td><%= a.action_type%></td>
+                <% if a.action_type == "Move" || a.action_type == "Screen" %>
+                  <td><%= a.end_position_x %></td>
+                  <td><%= a.end_position_y %></td>
+                  <td></td>
+                <% elsif a.action_type == "Pass" %>
+                    <td></td>
+                    <td></td>
+                    <td><%= Player.find(a.teammate).role %></td>
+                <% end %>
+              <% end %>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div> 
+  <div class="AF_actions">  
+    <table>
+      <thead>
+        <th></th>
+        <th>Role</th>
+        <th>Type</th>
+        <th>End x</th>
+        <th>End y</th>
+        <th>Teammate</th>
+      </thead>
+      <tbody>
+        <% currentAF.actions.each do |a| %>
+          <tr>
+          <!-- Disallow move/screen actions AFTER receiving a pass -->
+
+          <%= simple_form_for(a, as: :new_action) do |f| %>
+            <% if currentAF.actions.find_by_action_type("Pass") \
+              && a.player.id == currentAF.actions.find_by_action_type('Pass').teammate \
+              && (a.is_blank || a.is_stand) %>
+                <td><button><%= "#{a.player.role} Action\n Set to Catch" %></button></td>
+            <% else %>
+                <!-- New Action -->
+                <% if a.is_blank %>
+                  <td><%= f.submit "Add New \n#{a.player.role} Action" %></td>
+                <!-- Existing Action -->
+                <% else %>
+                  <!-- No next AF, update at will -->
+                  <% if currentAF.next_id == nil || currentAF.next_id == -1 %>
+                    <td><%= f.submit "Update \n#{a.player.role} Action" %></td>
+                  <!-- Existing next AF, then include confirmation and code 
+                  .to overwrite -->
+                  <% else %>
+                    <td><%= f.submit "Update \n#{a.player.role} Action", class: "overwrite" %></td>
+                  <% end %>
+                <% end %>
+            <% end %>
+              <td><%= a.player.role %></td>
+              <!-- Form for player w/ ball -->
+              <% if a.player.has_ball %>
+                <td><%= f.select :action_type, ["Move", "Screen", "Pass", "Shoot"], 
+                include_blank: true %></td>
+                <div class="move_screen">
+                  <td><%= f.input :end_position_x, label: false, input_html: {style: "width:50px;"} %></td>
+                  <td><%= f.input :end_position_y, label: false, input_html: {style: "width:50px;"} %></td>
+                </div>
+                <div class="pass">
+                  <td><%= f.input :teammate, collection: @set_play.players.where(has_ball: false), 
+                  label_method: :role, label: false %></td>
+                </div>
+              <!-- For player w/o ball -->
+              <% else %>
+                <td><%= f.select :action_type, ["Move", "Screen"], include_blank: true %></td>
+                <td><%= f.input :end_position_x, label: false, input_html: {style: "width:50px;"} %></td>
+                <td><%= f.input :end_position_y, label: false, input_html: {style: "width:50px;"} %></td>
+              <% end %>                               
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div> 
+
+	<div id="timeline">
+    <div id="prev" style="float:left;">
+  		<% if currentAF.prev_id > 0 %>
+  		  <%= button_to "Previous Action Frame", {controller: "set_plays", 
+          action: "prevAF", id: @set_play.id} %>
+  		<% end %>
+    </div>
+    <div id="next" style="float: right;">
+  		<% if currentAF.actions.exists?(action_type: "Shoot") %>
+  			<%= button_to "End Set Play", {controller: "set_plays",
+          action: "end_set_play", id: @set_play.id}, data: {confirm: "Save Set Play and return to index?"} %>
+  		<% elsif currentAF.next_id && currentAF.next_id != -1 %>
+        <!-- if exists current.action where updated_at is more recent than next's
+        updated_at, show "Update Next Action Frame and do the things" -->
+
+        <!-- else do the normal stuff -->
+  			<%= button_to "Next Action Frame", {controller: "set_plays", 
+          action: "nextAF", id: @set_play.id} %>
+  		<!-- Used to be add_AF, now alternative to "Next AF" -->
+  		<% else %>
+  			<% next_AF = ActionFrame.new %>
+  			<%= simple_form_for next_AF do |f| %>
+  				<%= f.hidden_field :prev_id, value: currentAF.id %>
+  				<%= f.hidden_field :set_play_id, value: @set_play.id %>
+  				<%= f.button :submit, "Add Action Frame" %>
+  			<% end %>
+  		<% end %>
+    </div>
+  </div>
+  <div class="clear"></div>
+
+  <div id="animation">
+    <% unless currentAF.actions.find_by_action_type("Shoot") %>
+      <button id="AF_anim" style="float:left;">Animate Current Action Frame</button>
+      <!-- <b id="Set_anim" style="float:right;">Animate Set Play to End</button> -->
+    <% end %>
+  </div>
+  <script>
+    function animate_set() {
+      <% start_AF = currentAF %>
+      court.clearRect(0, 0, 500, -470);
+      court.save();
+      <% while currentAF.next %>
+        var court = document.getElementById('court').getContext('2d');
+        pg_dx = pg_end_x - pg_x;
+        pg_dy = pg_end_y - pg_y;
+        sg_dx = sg_end_x - sg_x;
+        sg_dy = sg_end_y - sg_y;
+        sf_dx = sf_end_x - sf_x;
+        sf_dy = sf_end_y - sf_y;
+        pf_dx = pf_end_x - pf_x;
+        pf_dy = pf_end_y - pf_y;
+        c_dx = c_end_x - c_x;
+        c_dy = c_end_y - c_y;
+        ball_dx = ball_end_x - ball_x;
+        ball_dy = ball_end_y - ball_y;
+
+        animate_object(court, "PF", pf_x, pf_y, pf_end_x, pf_end_y, pf_dx, pf_dy);
+
+        // Move on to next AF
+        <% currentAF = currentAF.next %>
+        // Reset start values
+        pg_x = pg_end;
+        pg_y = pg_end_y;
+        sg_x = sg_end_x;
+        sg_y = sg_end_y;
+        sf_x = sf_end_x;
+        sf_y = sf_end_y;
+        pf_x = pf_end_x;
+        pf_y = pf_end_y;
+        c_x = c_end_x;
+        c_y = c_end_y;
+        ball_x = ball_end_x;
+        ball_y = ball_end_y;
+        // Find new end values
+        <% @set_play.players.each do |p| %>
+          <% a = p.current_action(currentAF) %>
+          <% if p.role == "PG" %>
+            <% if a.action_type == "Move" || a.action_type == "Screen" %>
+              pg_end_x = <%= a.end_position_x %> * 10;
+              pg_end_y = <%= a.end_position_y %> * -10;
+            <% elsif a.action_type == "Pass" %>
+              pg_end_x = pg_x;
+              pg_end_y = pg_y;
+              <% tm = Player.find(a.teammate) %>
+              <% tm_a = tm.current_action(currentAF) %>
+              <% if tm_a.action_type == "Move" || tm_a.action_type == "Screen" %>
+                ball_end_x = (<%= tm_a.end_position_x %> * 10) + 12;
+                ball_end_y = (<%= tm_a.end_position_y %> * -10) - 7;
+              //   // Annoying if-elses needed here for ball_end, ti va kanw;
+              <% else %> 
+                ball_end_x = (<%= tm.position_x %> * 10) + 12;
+                ball_end_y = (<%= tm.position_y %> * -10) - 7;
+              <% end %>
+            <% elsif a.action_type == "Shoot" %>
+              pg_end_x = pg_x;
+              pg_end_y = pg_y;
+              ball_end_x = 250.5;
+              ball_end_y = -54;
+            <% end %>
+          <% elsif (p.role == "SG") %>
+            <% if a.action_type == "Move" || a.action_type == "Screen" %>
+              sg_end_x = <%= a.end_position_x %> * 10;
+              sg_end_y = <%= a.end_position_y %> * -10;
+            <% elsif a.action_type == "Pass" %>
+              sg_end_x = sg_x;
+              sg_end_y = sg_y;
+              <% tm = Player.find(a.teammate) %>
+              <% tm_a = tm.current_action(currentAF) %>
+              <% if tm_a.action_type == "Move" || tm_a.action_type == "Screen" %>
+                ball_end_x = (<%= tm_a.end_position_x %> * 10) + 12;
+                ball_end_y = (<%= tm_a.end_position_y %> * -10) - 7;
+                // Annoying if-elses needed here for ball_end, ti va kanw;
+              <% else %> 
+                ball_end_x = (<%= tm.position_x %> * 10) + 12;
+                ball_end_y = (<%= tm.position_y %> * -10) - 7;
+              <% end %>
+            <% elsif a.action_type == "Shoot" %>
+              sg_end_x = sg_x;
+              sg_end_y = sg_y;
+              ball_end_x = 250.5;
+              ball_end_y = -54;
+            <% end %>
+          <% elsif (p.role == "SF") %>
+            <% if a.action_type == "Move" || a.action_type == "Screen" %>
+              sf_end_x = <%= a.end_position_x %> * 10;
+              sf_end_y = <%= a.end_position_y %> * -10;
+            <% elsif a.action_type == "Pass" %>
+              sf_end_x = sf_x;
+              sf_end_y = sf_y;
+              <% tm = Player.find(a.teammate) %>
+              <% tm_a = tm.current_action(currentAF) %>
+              <% if tm_a.action_type == "Move" || tm_a.action_type == "Screen" %>
+                ball_end_x = (<%= tm_a.end_position_x %> * 10) + 12;
+                ball_end_y = (<%= tm_a.end_position_y %> * -10) - 7;
+                // Annoying if-elses needed here for ball_end, ti va kanw;
+              <% else %> 
+                ball_end_x = (<%= tm.position_x %> * 10) + 12;
+                ball_end_y = (<%= tm.position_y %> * -10) - 7;
+              <% end %>
+            <% elsif a.action_type == "Shoot" %>
+              sf_end_x = sf_x;
+              sf_end_y = sf_y;
+              ball_end_x = 250.5;
+              ball_end_y = -54;
+            <% end %>
+          <% elsif (p.role == "PF") %>
+            <% if a.action_type == "Move" || a.action_type == "Screen" %>
+              pf_end_x = <%= a.end_position_x %> * 10;
+              pf_end_y = <%= a.end_position_y %> * -10;
+            <% elsif a.action_type == "Pass" %>
+              pf_end_x = pf_x;
+              pf_end_y = pf_y;
+              <% tm = Player.find(a.teammate) %>
+              <% tm_a = tm.current_action(currentAF) %>
+              <% if tm_a.action_type == "Move" || tm_a.action_type == "Screen" %>
+                ball_end_x = (<%= tm_a.end_position_x %> * 10) + 12;
+                ball_end_y = (<%= tm_a.end_position_y %> * -10) - 7;
+                // Annoying if-elses needed here for ball_end, ti va kanw;
+              <% else %> 
+                ball_end_x = (<%= tm.position_x %> * 10) + 12;
+                ball_end_y = (<%= tm.position_y %> * -10) - 7;
+              <% end %>
+            <% elsif a.action_type == "Shoot" %>
+              pf_end_x = pf_x;
+              pf_end_y = pf_y;
+              ball_end_x = 250.5;
+              ball_end_y = -54;
+            <% end %>
+          <% elsif (p.role == "C") %>
+            <% if a.action_type == "Move" || a.action_type == "Screen" %>
+              c_end_x = <%= a.end_position_x %> * 10;
+              c_end_y = <%= a.end_position_y %> * -10;
+            <% elsif a.action_type == "Pass" %>
+              c_end_x = c_x;
+              c_end_y = c_y;
+              <% tm = Player.find(a.teammate) %>
+              <% tm_a = tm.current_action(currentAF) %>
+              <% if tm_a.action_type == "Move" || tm_a.action_type == "Screen" %>
+                ball_end_x = (<%= tm_a.end_position_x %> * 10) + 12;
+                ball_end_y = (<%= tm_a.end_position_y %> * -10) - 7;
+                // Annoying if-elses needed here for ball_end, ti va kanw;
+              <% else %> 
+                ball_end_x = (<%= tm.position_x %> * 10) + 12;
+                ball_end_y = (<%= tm.position_y %> * -10) - 7);
+              <% end %>
+            <% elsif a.action_type == "Shoot" %>
+              c_end_x = c_x;
+              c_end_y = c_y;
+              ball_end_x = 250.5;
+              ball_end_y = -54;
+            <% end %>
+          <% end %>
+        <% end %>
+        // Loop
+      <% end %>
+    }
+
+    function animate_object(court, object, start_x, start_y, end_x, end_y, dx, dy) {
+      court.clearRect(0, 0, 500, -470);
+      court.save();
+      i = 0;
+      if (object == "PG") {
+
+      } else if (object == "SG") {
+
+      } else if (object == "SF") {
+
+      } else if (object == "PF") {
+        if ((start_x == end_x) && (start_y == end_y)) {
+          court.fillText("PF", start_x, end_x);
+        } else {
+          court.fillText("PF", start_x += i*dx/10, start_y += i*dy/10)
+        }
+      } else if (object == "C") {
+
+      } else if (object == "Ball") {
+
+      }
+      i += 1;
+    }
+  </script>
+</div>
+
+<div class="clear"></div>
+
+<%#= link_to 'Edit', edit_set_play_path(@set_play) %> |
+<%= link_to 'Back', set_plays_path %>

@@ -1,0 +1,57 @@
+<h1>Listing offenses</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Pg x</th>
+      <th>Pg y</th>
+      <th>Pg ball</th>
+      <th>Sg x</th>
+      <th>Sg y</th>
+      <th>Sg ball</th>
+      <th>Sf x</th>
+      <th>Sf y</th>
+      <th>Sf ball</th>
+      <th>Pf x</th>
+      <th>Pf y</th>
+      <th>Pf ball</th>
+      <th>C x</th>
+      <th>C y</th>
+      <th>C ball</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @offenses.each do |offense| %>
+      <tr>
+        <td><%= offense.name %></td>
+        <td><%= offense.pg_x %></td>
+        <td><%= offense.pg_y %></td>
+        <td><%= offense.pg_ball %></td>
+        <td><%= offense.sg_x %></td>
+        <td><%= offense.sg_y %></td>
+        <td><%= offense.sg_ball %></td>
+        <td><%= offense.sf_x %></td>
+        <td><%= offense.sf_y %></td>
+        <td><%= offense.sf_ball %></td>
+        <td><%= offense.pf_x %></td>
+        <td><%= offense.pf_y %></td>
+        <td><%= offense.pf_ball %></td>
+        <td><%= offense.c_x %></td>
+        <td><%= offense.c_y %></td>
+        <td><%= offense.c_ball %></td>
+        <td><%= link_to 'Show', offense %></td>
+        <td><%= link_to 'Edit', edit_offense_path(offense) %></td>
+        <td><%= link_to 'Destroy', offense, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Offense', new_offense_path %>

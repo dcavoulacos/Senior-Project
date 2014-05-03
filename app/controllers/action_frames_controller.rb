@@ -26,25 +26,69 @@ class ActionFramesController < ApplicationController
     @action_frame = ActionFrame.new(action_frame_params)
 
     if @action_frame.save
-      # Initial position for all players set here FOR NOW!
-      @action_frame.players.create(role: "PG", has_ball: true, 
-        position_x: 25, position_y: 30)
-      @action_frame.players.create(role: "SG", has_ball: false,
-        position_x: 2, position_y: 7)
-      @action_frame.players.create(role: "SF", has_ball: false,
-        position_x: 48, position_y: 7)
-      @action_frame.players.create(role: "PF", has_ball: false,
-        position_x: 16, position_y: 20)
-      @action_frame.players.create(role: "C", has_ball: false,
-        position_x: 34, position_y: 20)
-      
-      @action_frame.actions.create(player_id: @action_frame.players.first.id)     
-      @action_frame.actions.create(player_id: @action_frame.players.second.id)    
-      @action_frame.actions.create(player_id: @action_frame.players.third.id)
-      @action_frame.actions.create(player_id: @action_frame.players.fourth.id)
-      @action_frame.actions.create(player_id: @action_frame.players.fifth.id)
+      # Find AF's set play, and make sure next/prev relation is good.
+      @set_play = SetPlay.find(@action_frame.set_play_id)      
+      @set_play.currentAF_id = @action_frame.id
+      @set_play.save
 
-      redirect_to @action_frame, notice: 'Action frame was successfully created.'
+      prev = ActionFrame.find(@action_frame.prev_id)
+      prev.next_id = @action_frame.id
+      if prev.ends_set
+        prev.ends_set = false
+      end
+      prev.save
+      # Fill any empty prev actions to Move with end_x/y values set
+      while prev.has_blank
+        prev.actions.each do |a|
+          if a.is_blank
+            a.action_type = "Move"
+            a.end_position_x = a.player.position_x
+            a.end_position_y = a.player.position_y
+            a.save
+          end
+        end
+      end
+
+      # Make sure new action frame isn't initial action frame, then update players
+      if @set_play.action_frames.last.prev_id > 0
+      # Update all player positions/ball boolean
+        prev.actions.each do |a|
+          p = a.player
+          # Move/Screen actions first
+          if a.action_type == "Move" || a.action_type == "Screen"
+            p.position_x = a.end_position_x
+            p.position_y = a.end_position_y
+          # Pass action
+          elsif a.action_type == "Pass"
+            if !p.has_ball
+              redirect_to @set_play, notice: 'Player must have the ball to pass!'
+            else
+              # Player loses ball first
+              p.has_ball = false
+              # Teammate gains ball second
+              teammate = Player.find_by_id(a.teammate)
+              teammate.has_ball = true
+              teammate.save
+            end
+          # Shoot action should not come up
+          # elsif a.action_type == "Shoot"
+          #   redirect_to @set_play, notice: 'No new action frame after a shot. How did you get here?'
+          # # No other actions should be possible
+          # else
+          #   redirect_to @set_play, notice: 'Impossible action type found. What did you do..?'
+          end
+          p.save
+        end
+      end
+
+      # Create actions for all five players
+      @action_frame.actions.create(player_id: @set_play.pg.id)     
+      @action_frame.actions.create(player_id: @set_play.sg.id)    
+      @action_frame.actions.create(player_id: @set_play.sf.id)
+      @action_frame.actions.create(player_id: @set_play.pf.id)
+      @action_frame.actions.create(player_id: @set_play.c.id)
+
+      redirect_to @set_play, notice: 'Action frame was successfully created.'
 
     else
       render action: 'new'
@@ -54,7 +98,7 @@ class ActionFramesController < ApplicationController
   # PATCH/PUT /action_frames/1
   def update
     if @action_frame.update(action_frame_params)
-      redirect_to @action_frame, notice: 'Action frame was successfully updated.'
+      redirect_to :back, notice: 'Action frame was successfully updated.'
     else
       render action: 'edit'
     end
@@ -62,6 +106,10 @@ class ActionFramesController < ApplicationController
 
   # DELETE /action_frames/1
   def destroy
+    @action_frame.prev.next_id = nil
+    @action_frame.prev.save
+    @action_frame.set_play.currentAF_id = @action_frame.prev.id
+    @action_frame.set_play.save
     @action_frame.destroy
     redirect_to action_frames_url, notice: 'Action frame was successfully destroyed.'
   end
@@ -74,6 +122,6 @@ class ActionFramesController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def action_frame_params
-      params.permit()
+      params.require(:action_frame).permit(:set_play_id, :prev_id)
     end
 end

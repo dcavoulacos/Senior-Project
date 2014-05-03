@@ -2,5 +2,12 @@
 
 <%= render 'action_frame' %>
 
+<%= @action_frame.prev_id %><br>
+<%= @action_frame.actions.all %>
+<br>
+<%= SetPlay.find_by_id(@action_frame.set_play_id).players.all %>
+<br>
+<br>
+
 <%= link_to 'Edit', edit_action_frame_path(@action_frame) %> |
 <%= link_to 'Back', action_frames_path %>

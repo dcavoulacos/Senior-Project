@@ -1,13 +1,18 @@
 SeniorProject::Application.routes.draw do
   
-  resources :action_frames
+  resources :offenses
 
-  get "action_frames/index"
+  resources :set_plays
+
+  resources :action_frames
+  get "set_plays/index"
+  post "set_plays/prevAF"
+  post "set_plays/nextAF"
+  post "set_plays/end_set_play"
 
   resources :players
   resources :actions
-
-  root 'action_frames#index'
+  root 'set_plays#index'
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

@@ -1,31 +1,9 @@
-<canvas id="court">    
+<canvas id="court" width="500px" height="470px">    
    <!-- Graphical display and manipulation to happen here -->
 
 </canvas>
 
 <div class="not-court">
-    <div class="players">
-        <table>
-            <thead>
-                <th>Role</th>
-                <th>Pos x</th>
-                <th>Pos y</th>
-                <th>Has Ball</th>
-            </thead>
-            <tbody>
-                <% @action_frame.players.each do |p| %>
-                    <tr>
-                        <td><%= p.role%></td>
-                        <td><%= p.position_x %></td>
-                        <td><%= p.position_y %></td>
-                        <td><%= p.has_ball %></td>
-                        <br>
-                    </tr>
-                <% end %>
-            </tbody>
-        </table>
-    </div> 
-
     <div class="AF_actions">
         <% if @action_frame.actions.size >= 0 %>
             <table>

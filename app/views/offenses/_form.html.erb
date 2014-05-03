@@ -1,0 +1,81 @@
+<%= form_for(@offense) do |f| %>
+  <% if @offense.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@offense.errors.count, "error") %> prohibited this offense from being saved:</h2>
+
+      <ul>
+      <% @offense.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :name %><br>
+    <%= f.text_area :name %>
+  </div>
+  <div class="field">
+    <%= f.label :pg_x %><br>
+    <%= f.text_field :pg_x %>
+  </div>
+  <div class="field">
+    <%= f.label :pg_y %><br>
+    <%= f.text_field :pg_y %>
+  </div>
+  <div class="field">
+    <%= f.label :pg_ball %><br>
+    <%= f.check_box :pg_ball %>
+  </div>
+  <div class="field">
+    <%= f.label :sg_x %><br>
+    <%= f.text_field :sg_x %>
+  </div>
+  <div class="field">
+    <%= f.label :sg_y %><br>
+    <%= f.text_field :sg_y %>
+  </div>
+  <div class="field">
+    <%= f.label :sg_ball %><br>
+    <%= f.check_box :sg_ball %>
+  </div>
+  <div class="field">
+    <%= f.label :sf_x %><br>
+    <%= f.text_field :sf_x %>
+  </div>
+  <div class="field">
+    <%= f.label :sf_y %><br>
+    <%= f.text_field :sf_y %>
+  </div>
+  <div class="field">
+    <%= f.label :sf_ball %><br>
+    <%= f.check_box :sf_ball %>
+  </div>
+  <div class="field">
+    <%= f.label :pf_x %><br>
+    <%= f.text_field :pf_x %>
+  </div>
+  <div class="field">
+    <%= f.label :pf_y %><br>
+    <%= f.text_field :pf_y %>
+  </div>
+  <div class="field">
+    <%= f.label :pf_ball %><br>
+    <%= f.check_box :pf_ball %>
+  </div>
+  <div class="field">
+    <%= f.label :c_x %><br>
+    <%= f.text_field :c_x %>
+  </div>
+  <div class="field">
+    <%= f.label :c_y %><br>
+    <%= f.text_field :c_y %>
+  </div>
+  <div class="field">
+    <%= f.label :c_ball %><br>
+    <%= f.check_box :c_ball %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

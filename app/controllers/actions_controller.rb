@@ -38,14 +38,18 @@ class ActionsController < ApplicationController
 
   # PATCH/PUT /actions/1
   def update
-
-    if (@action.action_type == 'Pass' && @action.player.has_ball == false)
-      format.html {redirect_to :back }
-      format.json { render json: @action.errors, status: :unprocessable_entity }
-    end
-
     if @action.update(action_params)
-      redirect_to @action.action_frame, notice: 'Action was successfully updated.'
+      if action_params[:action_type] == "Shoot"
+        @action.teammate = nil
+        @action.end_position_x = nil
+        @action.end_position_y = nil
+      elsif action_params[:action_type] == "Pass"
+        @action.end_position_x = nil
+        @action.end_position_y = nil
+      end
+      @action.save
+      @set_play = SetPlay.find_by_id(@action.action_frame.set_play_id)
+      redirect_to @set_play
     else
       render action: 'edit'
     end
